@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A.R.C.A.N.E // System Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-0: #080a16;
+            --bg-1: #0d1122;
+            --panel: #10152a;
+            --panel-soft: rgba(255, 255, 255, 0.02);
+            --line: rgba(255, 255, 255, 0.06);
+            --cyan: #31d7f7;
+            --violet: #8b6cf5;
+            --green: #3dffb0;
+            --text-hi: #e8ebf3;
+            --text-mid: #8b93ab;
+            --text-lo: #4d5570;
+            --font-display: 'Sora', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 0%, rgba(139, 108, 245, 0.10), transparent 45%),
+                radial-gradient(circle at 85% 100%, rgba(49, 215, 247, 0.08), transparent 45%),
+                var(--bg-0);
+            color: var(--text-mid);
+            font-family: var(--font-body);
+            overflow: hidden;
+        }
+
+        .app {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 28px 40px 20px;
+            gap: 22px;
+        }
+
+        /* ===== HEADER ===== */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand .mark {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: linear-gradient(135deg, var(--cyan), var(--violet));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-size: 13px;
+            color: #050710;
+            box-shadow: 0 0 22px rgba(49, 215, 247, 0.35);
+        }
+
+        .brand h1 {
+            font-family: var(--font-display);
+            font-size: 17px;
+            letter-spacing: 3px;
+            color: var(--text-hi);
+            font-weight: 700;
+        }
+
+        .brand p {
+            font-size: 10.5px;
+            letter-spacing: 1.5px;
+            color: var(--text-lo);
+            margin-top: 2px;
+        }
+
+        .user-chip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-left: 20px;
+            margin-left: 20px;
+            border-left: 1px solid var(--line);
+        }
+
+        .user-chip .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2c3454, #141a30);
+            border: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--cyan);
+        }
+
+        .user-chip span {
+            font-size: 12.5px;
+            color: var(--text-mid);
+        }
+
+        .top-right {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .icon-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-mid);
+            cursor: pointer;
+        }
+
+        .icon-btn svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .pro-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(255, 196, 102, 0.14), rgba(255, 196, 102, 0.04));
+            border: 1px solid rgba(255, 196, 102, 0.3);
+            color: #ffcf7a;
+            font-size: 11px;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        /* ===== MAIN GRID ===== */
+        .main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 300px 1fr 320px;
+            gap: 26px;
+            min-height: 0;
+        }
+
+        .col-title {
+            font-family: var(--font-display);
+            font-size: 12.5px;
+            color: var(--text-hi);
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            margin-bottom: 16px;
+        }
+
+        /* ===== LEFT: HISTORIC RATIOS ===== */
+        .history-col {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            overflow-y: auto;
+            padding-right: 4px;
+            margin-right: -4px;
+        }
+
+        .history-grid::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .history-grid::-webkit-scrollbar-thumb {
+            background: var(--line);
+            border-radius: 4px;
+        }
+
+        .h-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 14px 14px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .h-card .icon {
+            width: 22px;
+            height: 22px;
+            color: var(--cyan);
+            opacity: 0.85;
+        }
+
+        .h-card .icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .h-card .label {
+            font-size: 10px;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--text-mid);
+            font-weight: 600;
+        }
+
+        .h-card .pct {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text-hi);
+        }
+
+        .bar {
+            height: 4px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.06);
+            overflow: hidden;
+        }
+
+        .bar i {
+            display: block;
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--cyan), var(--violet));
+        }
+
+        .scroll-hint {
+            display: flex;
+            justify-content: center;
+            margin-top: 14px;
+            color: var(--text-lo);
+        }
+
+        .scroll-hint svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* ===== CENTER: CORE TARGET ===== */
+        .core-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .orb-wrap {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .orb-glow {
+            position: absolute;
+            inset: -30px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(49, 215, 247, 0.14), transparent 70%);
+            filter: blur(6px);
+        }
+
+        .orb-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 1px solid rgba(49, 215, 247, 0.25);
+            animation: orb-rotate 30s linear infinite;
+        }
+
+        .orb-ring::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            margin-left: -3px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan);
+        }
+
+        @keyframes orb-rotate {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .orb-core {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, rgba(139, 108, 245, 0.35), rgba(8, 10, 22, 0.9) 65%);
+            border: 1px solid rgba(49, 215, 247, 0.18);
+            box-shadow: inset 0 0 60px rgba(49, 215, 247, 0.12), 0 0 70px rgba(139, 108, 245, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #wave-canvas {
+            width: 220px;
+            height: 100px;
+        }
+
+        .transcript {
+            margin-top: 26px;
+            font-size: 13.5px;
+            color: var(--text-mid);
+            max-width: 420px;
+            text-align: center;
+            min-height: 20px;
+            font-style: italic;
+        }
+
+        .listen-state {
+            margin-top: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .listen-state .word {
+            font-family: var(--font-display);
+            font-size: 26px;
+            font-weight: 600;
+            color: var(--text-hi);
+            letter-spacing: 0.5px;
+        }
+
+        .mic-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: rgba(49, 215, 247, 0.08);
+            border: 1px solid rgba(49, 215, 247, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--cyan);
+            animation: mic-pulse 2.2s ease-in-out infinite;
+        }
+
+        .mic-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        @keyframes mic-pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(49, 215, 247, 0.25);
+            }
+
+            50% {
+                box-shadow: 0 0 0 10px rgba(49, 215, 247, 0);
+            }
+        }
+
+        /* ===== RIGHT: TELEMETRY PLACEMENT ===== */
+        .detail-col {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .detail-col::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .detail-col::-webkit-scrollbar-thumb {
+            background: var(--line);
+            border-radius: 4px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 18px 20px;
+        }
+
+        .field {
+            margin-bottom: 14px;
+        }
+
+        .field:last-child {
+            margin-bottom: 0;
+        }
+
+        .field .k {
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--cyan);
+            margin-bottom: 4px;
+        }
+
+        .field .v {
+            font-size: 13.5px;
+            color: var(--text-hi);
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .result-row .v {
+            font-family: var(--font-mono);
+            color: var(--green);
+            font-size: 15px;
+        }
+
+        .link-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+        }
+
+        .link-row a {
+            font-size: 11px;
+            color: var(--text-mid);
+            text-decoration: none;
+            border-bottom: 1px dashed var(--line);
+        }
+
+        .panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .panel-head .col-title {
+            margin-bottom: 0;
+        }
+
+        .panel-head a {
+            font-size: 10.5px;
+            color: var(--text-lo);
+            text-decoration: none;
+        }
+
+        .action-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .action-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .action-row .thumb {
+            width: 38px;
+            height: 38px;
+            border-radius: 9px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #1a2140, #0c0f1e);
+            border: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--violet);
+        }
+
+        .action-row .thumb svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .action-row .meta {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .action-row .meta .t {
+            font-size: 12.5px;
+            color: var(--text-hi);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .action-row .meta .s {
+            font-size: 10.5px;
+            color: var(--text-lo);
+            margin-top: 2px;
+        }
+
+        .action-row .go {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-mid);
+        }
+
+        .action-row .go svg {
+            width: 9px;
+            height: 9px;
+        }
+
+        .sys-panel {
+            padding-bottom: 20px;
+        }
+
+        .sys-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .sys-row .name {
+            font-size: 11.5px;
+            color: var(--text-mid);
+            width: 70px;
+        }
+
+        .sys-row .bar {
+            flex: 1;
+            margin: 0 12px;
+        }
+
+        .sys-row .val {
+            font-family: var(--font-mono);
+            font-size: 11.5px;
+            color: var(--text-hi);
+            width: 34px;
+            text-align: right;
+        }
+
+        /* ===== FOOTER CONTROL DOCK ===== */
+        .dock {
+            display: flex;
+            align-self: center;
+            gap: 8px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 8px;
+            margin-top: auto;
+        }
+
+        .dock button {
+            width: 44px;
+            height: 44px;
+            border-radius: 11px;
+            border: none;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text-lo);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .2s, color .2s;
+        }
+
+        .dock button svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .dock button.active {
+            background: rgba(49, 215, 247, 0.12);
+            color: var(--cyan);
+        }
+
+        .dock button:hover {
+            color: var(--text-hi);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <div class="topbar">
+            <div class="brand">
+                <div class="mark">A</div>
+                <div>
+                    <h1>A R C A N E</h1>
+                    <p>LOCAL VOICE CONSOLE</p>
+                </div>
+                <div class="user-chip">
+                    <div class="avatar">SA</div>
+                    <span>SayedA</span>
+                </div>
+            </div>
+            <div class="top-right">
+                <div class="icon-btn" title="Notifications">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                        <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+                    </svg>
+                </div>
+                <div class="icon-btn" title="Theme">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                        <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z" />
+                    </svg>
+                </div>
+                <div class="pro-pill">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
+                        <path d="M12 2l2.4 6.6L21 9l-5 4.6L17.4 21 12 17.3 6.6 21 8 13.6 3 9l6.6-.4z" />
+                    </svg>
+                    LOCAL PRO
+                </div>
+            </div>
+        </div>
+
+        <div class="main">
+
+            <div class="history-col">
+                <div class="col-title">// RECENT COMMANDS</div>
+                <div class="history-grid" id="history-grid"></div>
+                <div class="scroll-hint">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                        <path d="M12 5v14M5 12l7 7 7-7" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="core-col">
+                <div class="orb-wrap">
+                    <div class="orb-glow"></div>
+                    <div class="orb-ring"></div>
+                    <div class="orb-core">
+                        <canvas id="wave-canvas" width="220" height="100"></canvas>
+                    </div>
+                </div>
+                <p class="transcript" id="transcript">Awaiting first acoustic handshake transient...</p>
+                <div class="listen-state">
+                    <div class="word" id="state-word">STANDBY</div>
+                    <div class="mic-btn" id="mic-node">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                            <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                            <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-col">
+                <div class="panel">
+                    <div class="col-title">// PARSED COMMAND</div>
+                    <div class="field">
+                        <div class="k">Intent</div>
+                        <div class="v" id="cmd-title">None</div>
+                    </div>
+                    <div class="field">
+                        <div class="k">Route</div>
+                        <div class="v" id="cmd-category">Standby Matrix Layer</div>
+                    </div>
+                    <div class="field">
+                        <div class="k">Confidence</div>
+                        <div class="result-row">
+                            <span class="v" id="cmd-conf">0.0%</span>
+                        </div>
+                        <div class="link-row">
+                            <a href="#">View log</a>
+                            <a href="#">View routing</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="col-title">// LAST ACTIONS</div>
+                        <a href="#">View all</a>
+                    </div>
+                    <div id="actions-list"></div>
+                </div>
+
+                <div class="panel sys-panel">
+                    <div class="panel-head">
+                        <div class="col-title">// SYSTEM STATUS</div>
+                        <a href="#">Details</a>
+                    </div>
+                    <div id="sys-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dock">
+            <button class="active" title="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="1.6">
+                    <path d="M3 11.5 12 4l9 7.5" />
+                    <path d="M5 10v10h14V10" />
+                </svg></button>
+            <button title="Listen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="m21 21-4.3-4.3" />
+                </svg></button>
+            <button title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
+                </svg></button>
+            <button title="Activity log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                    <path d="M3 3v18h18" />
+                    <path d="M7 15l4-6 3 4 5-8" />
+                </svg></button>
+        </div>
+
+    </div>
+
+    <script>
+        const ICONS = {
+            weather: '<path d="M17.5 19a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.4-1.8A5 5 0 0 0 7 18h10.5Z"/>',
+            alarm: '<circle cx="12" cy="13" r="7"/><path d="M12 9v4l3 2M9 2l-3 2M15 2l3 2"/>',
+            spotify: '<circle cx="12" cy="12" r="9"/><path d="M7.5 10.2c3-1 6.7-.6 9 .9M8 13.3c2.3-.7 5-.4 7 .8M8.6 16.2c1.8-.5 3.8-.3 5.3.6"/>',
+            whatsapp: '<path d="M3 21l1.4-4.2A8 8 0 1 1 8 19.5Z"/><path d="M8.5 9.5c.3 2 2 3.7 4 4"/>',
+            power: '<path d="M12 2v8"/><path d="M6.3 6.3a8 8 0 1 0 11.4 0"/>',
+            reminder: '<path d="M12 6v6l3 3"/><circle cx="12" cy="13" r="8"/><path d="M9 2h6"/>',
+            facts: '<circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/>',
+            browser: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/>',
+            windDown: '<path d="M12 3a7 7 0 1 0 7 9 7 7 0 0 1-7-9Z"/>',
+            workMode: '<rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+        };
+
+        const history = [
+            { label: 'Workspace', icon: 'workMode', pct: 0 },
+            { label: 'Brave Browser', icon: 'browser', pct: 0 },
+            { label: 'Spotify', icon: 'spotify', pct: 0 },
+            { label: 'Vocal Synth', icon: 'facts', pct: 0 },
+        ];
+
+        function renderHistory() {
+            document.getElementById('history-grid').innerHTML = history.map(h => `
+    <div class="h-card">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${ICONS[h.icon]}</svg></div>
+      <div class="label">${h.label}</div>
+      <div class="pct">${h.pct}%</div>
+      <div class="bar"><i style="width:${h.pct}%"></i></div>
+    </div>
+  `).join('');
+        }
+        renderHistory();
+
+        const actions = [
+            { icon: 'power', t: 'System Core Initialized', s: 'Arcane Framework · Online' },
+        ];
+
+        function renderActions() {
+            document.getElementById('actions-list').innerHTML = actions.map(a => `
+    <div class="action-row">
+      <div class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${ICONS[a.icon]}</svg></div>
+      <div class="meta"><div class="t">${a.t}</div><div class="s">${a.s}</div></div>
+      <div class="go"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3l8 9-8 9V3z"/></svg></div>
+    </div>
+  `).join('');
+        }
+        renderActions();
+
+        const sysStats = [
+            { name: 'CPU Core', val: 14 },
+            { name: 'RAM Space', val: 42 },
+            { name: 'Mic Input', val: 0 },
+        ];
+
+        function renderSysStats() {
+            document.getElementById('sys-list').innerHTML = sysStats.map(s => `
+    <div class="sys-row">
+      <span class="name">${s.name}</span>
+      <div class="bar"><i style="width:${s.val}%"></i></div>
+      <span class="val">${s.val}%</span>
+    </div>
+  `).join('');
+        }
+        renderSysStats();
+
+        /* ---------- WAVEFORM ANIMATION MAPPING ---------- */
+        const canvas = document.getElementById('wave-canvas');
+        const ctx = canvas.getContext('2d');
+        let t = 0;
+        let amp = 2;
+
+        function drawWave() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const mid = canvas.height / 2;
+
+            [{ color: 'rgba(49,215,247,0.85)', off: 0, a: amp },
+            { color: 'rgba(139,108,245,0.65)', off: 1.4, a: amp * 0.7 }].forEach(w => {
+                ctx.beginPath();
+                for (let x = 0; x <= canvas.width; x++) {
+                    const y = mid + Math.sin(x * 0.04 + t + w.off) * w.a * Math.sin(x * 0.01 + t * 0.5);
+                    x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                }
+                ctx.strokeStyle = w.color;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+
+            t += 0.05;
+            requestAnimationFrame(drawWave);
+        }
+        drawWave();
+
+        /* ---------- WEBSOCKET CORE ENGINE HANDLES ---------- */
+        const stateWord = document.getElementById('state-word');
+        const transcript = document.getElementById('transcript');
+        const cmdTitle = document.getElementById('cmd-title');
+        const cmdCategory = document.getElementById('cmd-category');
+        const cmdConf = document.getElementById('cmd-conf');
+        const micNode = document.getElementById('mic-node');
+
+        function setListening() {
+            amp = 18;
+            stateWord.textContent = 'LISTENING';
+            stateWord.style.color = 'var(--cyan)';
+            micNode.style.color = 'var(--cyan)';
+            micNode.style.background = 'rgba(49,215,247,0.15)';
+            transcript.textContent = '"Awaiting second transient audio wave confirmation..."';
+            sysStats[2].val = 85;
+            renderSysStats();
+        }
+
+        function setThinking(text) {
+            amp = 30;
+            stateWord.textContent = 'THINKING';
+            stateWord.style.color = 'var(--violet)';
+            micNode.style.color = 'var(--violet)';
+            micNode.style.background = 'rgba(139,108,245,0.15)';
+            if (text) transcript.textContent = '"' + text + '"';
+
+            // Animate processing metrics up
+            history[0].pct = 45; history[1].pct = 35;
+            renderHistory();
+        }
+
+        function setReady(intent, route, conf) {
+            amp = 4;
+            stateWord.textContent = 'READY';
+            stateWord.style.color = 'var(--green)';
+            micNode.style.color = 'var(--green)';
+            micNode.style.background = 'rgba(61,255,176,0.15)';
+
+            if (intent) cmdTitle.textContent = intent;
+            if (route) cmdCategory.textContent = route;
+            if (conf) cmdConf.textContent = conf + '%';
+
+            // Max out display allocations
+            history.forEach(h => h.pct = 100);
+            renderHistory();
+
+            // Inject current workspace metrics into action block array
+            actions.unshift(
+                { icon: 'workMode', t: 'VS Code Workspace Loaded', s: 'IDE · Active' },
+                { icon: 'browser', t: 'Brave Profile Targets Synchronized', s: 'Browser · Connected' },
+                { icon: 'spotify', t: 'Attention played natively', s: 'Media · Streaming' }
+            );
+            renderActions();
+
+            sysStats[2].val = 10;
+            renderSysStats();
+        }
+
+        // Establish network connections
+        let socket;
+        try {
+            socket = new WebSocket('ws://localhost:8765');
+            socket.onmessage = (event) => {
+                let data;
+                try { data = JSON.parse(event.data); } catch (e) { return; }
+
+                if (data.state === 'listening') setListening();
+                else if (data.state === 'thinking') setThinking(data.transcript);
+                else if (data.state === 'ready') setReady(data.intent, data.route, data.confidence);
+            };
+        } catch (e) {
+            console.log("Socket connection failure. System dropped to standby mapping.");
+        }
+    </script>
+
+</body>
+
+</html>
