@@ -18,17 +18,5 @@ if (Test-Path ".\.venv\Scripts\Activate.ps1") {
 }
 
 # 3. Fire up the background listener in an isolated headless state
-Write-Host "[Arcane] Audio transient loop processing active. Standing by for handsakes..." -ForegroundColor Green
-python -c "
-import asyncio, threading, arcane_server
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-# Launch listener without calling webbrowser.open initially
-threading.Thread(target=arcane_server.audio_stream_loop, args=(loop,), daemon=True).start()
-print('[Arcane] Background engine safely listening...', flush=True)
-import websockets
-async def run_server():
-    async with websockets.serve(arcane_server.register, 'localhost', 8765):
-        await asyncio.Future()
-loop.run_until_complete(run_server())
-"
+Write-Host "[Arcane] Audio transient loop processing active. Standing by for handshakes..." -ForegroundColor Green
+python arcane_server.py --headless

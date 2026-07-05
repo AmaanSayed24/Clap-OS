@@ -2,929 +2,910 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A.R.C.A.N.E // System Console</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap"
-        rel="stylesheet">
-    <style>
-        :root {
-            --bg-0: #080a16;
-            --bg-1: #0d1122;
-            --panel: #10152a;
-            --panel-soft: rgba(255, 255, 255, 0.02);
-            --line: rgba(255, 255, 255, 0.06);
-            --cyan: #31d7f7;
-            --violet: #8b6cf5;
-            --green: #3dffb0;
-            --text-hi: #e8ebf3;
-            --text-mid: #8b93ab;
-            --text-lo: #4d5570;
-            --font-display: 'Sora', sans-serif;
-            --font-body: 'Inter', sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            background:
-                radial-gradient(circle at 20% 0%, rgba(139, 108, 245, 0.10), transparent 45%),
-                radial-gradient(circle at 85% 100%, rgba(49, 215, 247, 0.08), transparent 45%),
-                var(--bg-0);
-            color: var(--text-mid);
-            font-family: var(--font-body);
-            overflow: hidden;
-        }
-
-        .app {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            padding: 28px 40px 20px;
-            gap: 22px;
-        }
-
-        /* ===== HEADER ===== */
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .brand .mark {
-            width: 34px;
-            height: 34px;
-            border-radius: 9px;
-            background: linear-gradient(135deg, var(--cyan), var(--violet));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: var(--font-mono);
-            font-weight: 600;
-            font-size: 13px;
-            color: #050710;
-            box-shadow: 0 0 22px rgba(49, 215, 247, 0.35);
-        }
-
-        .brand h1 {
-            font-family: var(--font-display);
-            font-size: 17px;
-            letter-spacing: 3px;
-            color: var(--text-hi);
-            font-weight: 700;
-        }
-
-        .brand p {
-            font-size: 10.5px;
-            letter-spacing: 1.5px;
-            color: var(--text-lo);
-            margin-top: 2px;
-        }
-
-        .user-chip {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding-left: 20px;
-            margin-left: 20px;
-            border-left: 1px solid var(--line);
-        }
-
-        .user-chip .avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #2c3454, #141a30);
-            border: 1px solid var(--line);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: var(--font-mono);
-            font-size: 10px;
-            color: var(--cyan);
-        }
-
-        .user-chip span {
-            font-size: 12.5px;
-            color: var(--text-mid);
-        }
-
-        .top-right {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-        }
-
-        .icon-btn {
-            width: 34px;
-            height: 34px;
-            border-radius: 9px;
-            background: var(--panel-soft);
-            border: 1px solid var(--line);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-mid);
-            cursor: pointer;
-        }
-
-        .icon-btn svg {
-            width: 15px;
-            height: 15px;
-        }
-
-        .pro-pill {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 7px 14px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, rgba(255, 196, 102, 0.14), rgba(255, 196, 102, 0.04));
-            border: 1px solid rgba(255, 196, 102, 0.3);
-            color: #ffcf7a;
-            font-size: 11px;
-            letter-spacing: 1px;
-            font-weight: 600;
-        }
-
-        /* ===== MAIN GRID ===== */
-        .main {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 300px 1fr 320px;
-            gap: 26px;
-            min-height: 0;
-        }
-
-        .col-title {
-            font-family: var(--font-display);
-            font-size: 12.5px;
-            color: var(--text-hi);
-            font-weight: 600;
-            letter-spacing: 0.3px;
-            margin-bottom: 16px;
-        }
-
-        /* ===== LEFT: HISTORIC RATIOS ===== */
-        .history-col {
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-        }
-
-        .history-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            overflow-y: auto;
-            padding-right: 4px;
-            margin-right: -4px;
-        }
-
-        .history-grid::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .history-grid::-webkit-scrollbar-thumb {
-            background: var(--line);
-            border-radius: 4px;
-        }
-
-        .h-card {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 14px 14px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .h-card .icon {
-            width: 22px;
-            height: 22px;
-            color: var(--cyan);
-            opacity: 0.85;
-        }
-
-        .h-card .icon svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        .h-card .label {
-            font-size: 10px;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-            color: var(--text-mid);
-            font-weight: 600;
-        }
-
-        .h-card .pct {
-            font-family: var(--font-mono);
-            font-size: 14px;
-            color: var(--text-hi);
-        }
-
-        .bar {
-            height: 4px;
-            border-radius: 3px;
-            background: rgba(255, 255, 255, 0.06);
-            overflow: hidden;
-        }
-
-        .bar i {
-            display: block;
-            height: 100%;
-            border-radius: 3px;
-            background: linear-gradient(90deg, var(--cyan), var(--violet));
-        }
-
-        .scroll-hint {
-            display: flex;
-            justify-content: center;
-            margin-top: 14px;
-            color: var(--text-lo);
-        }
-
-        .scroll-hint svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        /* ===== CENTER: CORE TARGET ===== */
-        .core-col {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .orb-wrap {
-            position: relative;
-            width: 300px;
-            height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .orb-glow {
-            position: absolute;
-            inset: -30px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(49, 215, 247, 0.14), transparent 70%);
-            filter: blur(6px);
-        }
-
-        .orb-ring {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 1px solid rgba(49, 215, 247, 0.25);
-            animation: orb-rotate 30s linear infinite;
-        }
-
-        .orb-ring::before {
-            content: '';
-            position: absolute;
-            top: -3px;
-            left: 50%;
-            width: 6px;
-            height: 6px;
-            margin-left: -3px;
-            border-radius: 50%;
-            background: var(--cyan);
-            box-shadow: 0 0 10px var(--cyan);
-        }
-
-        @keyframes orb-rotate {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .orb-core {
-            width: 250px;
-            height: 250px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 35% 30%, rgba(139, 108, 245, 0.35), rgba(8, 10, 22, 0.9) 65%);
-            border: 1px solid rgba(49, 215, 247, 0.18);
-            box-shadow: inset 0 0 60px rgba(49, 215, 247, 0.12), 0 0 70px rgba(139, 108, 245, 0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        #wave-canvas {
-            width: 220px;
-            height: 100px;
-        }
-
-        .transcript {
-            margin-top: 26px;
-            font-size: 13.5px;
-            color: var(--text-mid);
-            max-width: 420px;
-            text-align: center;
-            min-height: 20px;
-            font-style: italic;
-        }
-
-        .listen-state {
-            margin-top: 14px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .listen-state .word {
-            font-family: var(--font-display);
-            font-size: 26px;
-            font-weight: 600;
-            color: var(--text-hi);
-            letter-spacing: 0.5px;
-        }
-
-        .mic-btn {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            background: rgba(49, 215, 247, 0.08);
-            border: 1px solid rgba(49, 215, 247, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--cyan);
-            animation: mic-pulse 2.2s ease-in-out infinite;
-        }
-
-        .mic-btn svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        @keyframes mic-pulse {
-
-            0%,
-            100% {
-                box-shadow: 0 0 0 0 rgba(49, 215, 247, 0.25);
-            }
-
-            50% {
-                box-shadow: 0 0 0 10px rgba(49, 215, 247, 0);
-            }
-        }
-
-        /* ===== RIGHT: TELEMETRY PLACEMENT ===== */
-        .detail-col {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            min-height: 0;
-            overflow-y: auto;
-            padding-right: 2px;
-        }
-
-        .detail-col::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .detail-col::-webkit-scrollbar-thumb {
-            background: var(--line);
-            border-radius: 4px;
-        }
-
-        .panel {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            padding: 18px 20px;
-        }
-
-        .field {
-            margin-bottom: 14px;
-        }
-
-        .field:last-child {
-            margin-bottom: 0;
-        }
-
-        .field .k {
-            font-size: 10px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: var(--cyan);
-            margin-bottom: 4px;
-        }
-
-        .field .v {
-            font-size: 13.5px;
-            color: var(--text-hi);
-        }
-
-        .result-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-        }
-
-        .result-row .v {
-            font-family: var(--font-mono);
-            color: var(--green);
-            font-size: 15px;
-        }
-
-        .link-row {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 4px;
-        }
-
-        .link-row a {
-            font-size: 11px;
-            color: var(--text-mid);
-            text-decoration: none;
-            border-bottom: 1px dashed var(--line);
-        }
-
-        .panel-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-        }
-
-        .panel-head .col-title {
-            margin-bottom: 0;
-        }
-
-        .panel-head a {
-            font-size: 10.5px;
-            color: var(--text-lo);
-            text-decoration: none;
-        }
-
-        .action-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--line);
-        }
-
-        .action-row:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .action-row .thumb {
-            width: 38px;
-            height: 38px;
-            border-radius: 9px;
-            flex-shrink: 0;
-            background: linear-gradient(135deg, #1a2140, #0c0f1e);
-            border: 1px solid var(--line);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--violet);
-        }
-
-        .action-row .thumb svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        .action-row .meta {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .action-row .meta .t {
-            font-size: 12.5px;
-            color: var(--text-hi);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .action-row .meta .s {
-            font-size: 10.5px;
-            color: var(--text-lo);
-            margin-top: 2px;
-        }
-
-        .action-row .go {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: var(--panel-soft);
-            border: 1px solid var(--line);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-mid);
-        }
-
-        .action-row .go svg {
-            width: 9px;
-            height: 9px;
-        }
-
-        .sys-panel {
-            padding-bottom: 20px;
-        }
-
-        .sys-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .sys-row .name {
-            font-size: 11.5px;
-            color: var(--text-mid);
-            width: 70px;
-        }
-
-        .sys-row .bar {
-            flex: 1;
-            margin: 0 12px;
-        }
-
-        .sys-row .val {
-            font-family: var(--font-mono);
-            font-size: 11.5px;
-            color: var(--text-hi);
-            width: 34px;
-            text-align: right;
-        }
-
-        /* ===== FOOTER CONTROL DOCK ===== */
-        .dock {
-            display: flex;
-            align-self: center;
-            gap: 8px;
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 16px;
-            padding: 8px;
-            margin-top: auto;
-        }
-
-        .dock button {
-            width: 44px;
-            height: 44px;
-            border-radius: 11px;
-            border: none;
-            cursor: pointer;
-            background: transparent;
-            color: var(--text-lo);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background .2s, color .2s;
-        }
-
-        .dock button svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        .dock button.active {
-            background: rgba(49, 215, 247, 0.12);
-            color: var(--cyan);
-        }
-
-        .dock button:hover {
-            color: var(--text-hi);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A.R.C.A.N.E // System Console</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07090f;
+      --panel: #0d1122;
+      --edge: rgba(255, 255, 255, 0.055);
+      --cyan: #31d7f7;
+      --violet: #8b6cf5;
+      --green: #3dffb0;
+      --amber: #ffcf7a;
+      --red: #ff6b6b;
+      --hi: #e8ebf3;
+      --mid: #8b93ab;
+      --lo: #3e4560;
+      --mono: 'JetBrains Mono', monospace;
+      --display: 'Sora', sans-serif;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(ellipse at 15% 0%, rgba(139, 108, 245, .11), transparent 42%),
+        radial-gradient(ellipse at 88% 100%, rgba(49, 215, 247, .08), transparent 40%),
+        var(--bg);
+      color: var(--mid);
+      font-family: var(--display);
+      overflow: hidden;
+    }
+
+    /* ─── layout ─────────────────────────────────────────────────── */
+    .app {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-rows: 60px 1fr 52px;
+      grid-template-columns: 290px 1fr 310px;
+      grid-template-areas:
+        "header header header"
+        "left   center right"
+        "dock   dock   dock";
+      gap: 0;
+      padding: 0;
+    }
+
+    /* ─── header ─────────────────────────────────────────────────── */
+    header {
+      grid-area: header;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 36px;
+      border-bottom: 1px solid var(--edge);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: #040812;
+      box-shadow: 0 0 18px rgba(49, 215, 247, .35);
+    }
+
+    .brand-text h1 {
+      font-size: 15px;
+      letter-spacing: 3.5px;
+      color: var(--hi);
+      font-weight: 700;
+    }
+
+    .brand-text p {
+      font-size: 10px;
+      letter-spacing: 1.8px;
+      color: var(--lo);
+      margin-top: 1px;
+    }
+
+    .conn-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, .025);
+      border: 1px solid var(--edge);
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .6px;
+      color: var(--mid);
+      transition: color .3s, border-color .3s;
+    }
+
+    .conn-chip.live {
+      color: var(--green);
+      border-color: rgba(61, 255, 176, .3);
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--lo);
+      transition: background .3s;
+    }
+
+    .conn-chip.live .dot {
+      background: var(--green);
+      box-shadow: 0 0 7px var(--green);
+      animation: blink 1.8s infinite;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: .25;
+      }
+    }
+
+    /* ─── column helpers ─────────────────────────────────────────── */
+    .col {
+      padding: 24px 22px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .left-col {
+      grid-area: left;
+      border-right: 1px solid var(--edge);
+    }
+
+    .center-col {
+      grid-area: center;
+      border-right: 1px solid var(--edge);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .right-col {
+      grid-area: right;
+    }
+
+    .col-title {
+      font-size: 10.5px;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      color: var(--lo);
+      margin-bottom: 14px;
+      font-weight: 600;
+    }
+
+    /* ─── sequence list ──────────────────────────────────────────── */
+    .seq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .seq-row {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      background: rgba(255, 255, 255, .02);
+      border: 1px solid var(--edge);
+      border-radius: 11px;
+      padding: 11px 13px;
+      transition: background .25s, border-color .25s;
+    }
+
+    .seq-num {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--lo);
+      width: 14px;
+    }
+
+    .seq-ic {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      color: var(--lo);
+      transition: color .25s;
+    }
+
+    .seq-ic svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .seq-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .seq-name {
+      font-size: 12px;
+      color: var(--hi);
+      font-weight: 600;
+    }
+
+    .seq-detail {
+      font-size: 10px;
+      color: var(--lo);
+      margin-top: 2px;
+      font-family: var(--mono);
+    }
+
+    .seq-badge {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, .03);
+      color: var(--lo);
+      transition: background .25s, color .25s;
+    }
+
+    /* active */
+    .seq-row.active {
+      background: rgba(255, 207, 122, .05);
+      border-color: rgba(255, 207, 122, .35);
+    }
+
+    .seq-row.active .seq-ic {
+      color: var(--amber);
+    }
+
+    .seq-row.active .seq-badge {
+      background: rgba(255, 207, 122, .1);
+      color: var(--amber);
+    }
+
+    /* done */
+    .seq-row.done {
+      border-color: rgba(61, 255, 176, .28);
+    }
+
+    .seq-row.done .seq-ic {
+      color: var(--green);
+    }
+
+    .seq-row.done .seq-badge {
+      background: rgba(61, 255, 176, .08);
+      color: var(--green);
+    }
+
+    /* error */
+    .seq-row.error .seq-ic {
+      color: var(--red);
+    }
+
+    .seq-row.error .seq-badge {
+      background: rgba(255, 107, 107, .08);
+      color: var(--red);
+    }
+
+    /* trigger spec card */
+    .spec-card {
+      margin-top: 18px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, .02);
+      border: 1px solid var(--edge);
+      border-radius: 11px;
+    }
+
+    .spec-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--edge);
+      font-size: 10.5px;
+    }
+
+    .spec-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .spec-row .sk {
+      color: var(--mid);
+    }
+
+    .spec-row .sv {
+      font-family: var(--mono);
+      color: var(--hi);
+      font-size: 10px;
+    }
+
+    /* ─── center / orb ───────────────────────────────────────────── */
+    .orb-wrap {
+      position: relative;
+      width: 268px;
+      height: 268px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .orb-glow {
+      position: absolute;
+      inset: -28px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(49, 215, 247, .13), transparent 68%);
+      filter: blur(5px);
+      transition: background .4s;
+    }
+
+    .orb-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(49, 215, 247, .22);
+      animation: spin 28s linear infinite;
+    }
+
+    .orb-ring::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: 50%;
+      width: 6px;
+      height: 6px;
+      margin-left: -3px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 9px var(--cyan);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .orb-core {
+      width: 222px;
+      height: 222px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 34% 28%, rgba(139, 108, 245, .32), rgba(7, 9, 15, .92) 64%);
+      border: 1px solid rgba(49, 215, 247, .16);
+      box-shadow: inset 0 0 55px rgba(49, 215, 247, .1), 0 0 65px rgba(139, 108, 245, .12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: box-shadow .4s;
+    }
+
+    #wave-cvs {
+      display: block;
+    }
+
+    .state-wrap {
+      margin-top: 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .state-word {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--hi);
+      letter-spacing: .4px;
+    }
+
+    .state-sub {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: var(--lo);
+    }
+
+    .hint {
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--mid);
+      max-width: 400px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* ─── right panel ────────────────────────────────────────────── */
+    .panel {
+      background: rgba(255, 255, 255, .015);
+      border: 1px solid var(--edge);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 14px;
+    }
+
+    .panel:last-child {
+      margin-bottom: 0;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .panel-head .col-title {
+      margin-bottom: 0;
+    }
+
+    .field {
+      margin-bottom: 10px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .fk {
+      font-size: 9.5px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 3px;
+    }
+
+    .fv {
+      font-size: 13px;
+      color: var(--hi);
+      font-family: var(--mono);
+    }
+
+    .meter {
+      margin-bottom: 12px;
+    }
+
+    .meter:last-child {
+      margin-bottom: 0;
+    }
+
+    .mhead {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      margin-bottom: 5px;
+    }
+
+    .mhead span:first-child {
+      color: var(--mid);
+    }
+
+    .mhead span:last-child {
+      font-family: var(--mono);
+      color: var(--hi);
+    }
+
+    .mbar {
+      height: 5px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, .05);
+      overflow: hidden;
+    }
+
+    .mbar i {
+      display: block;
+      height: 100%;
+      border-radius: 3px;
+      transition: width .1s linear;
+    }
+
+    .mbar.rms i {
+      background: linear-gradient(90deg, var(--cyan), var(--violet));
+    }
+
+    .mbar.thresh i {
+      background: linear-gradient(90deg, var(--amber), var(--red));
+    }
+
+    .mbar.floor i {
+      background: var(--lo);
+    }
+
+    /* ─── dock ───────────────────────────────────────────────────── */
+    footer {
+      grid-area: dock;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-top: 1px solid var(--edge);
+      padding: 0 24px;
+    }
+
+    .dock-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: var(--lo);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s, color .2s;
+    }
+
+    .dock-btn svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    .dock-btn.active {
+      background: rgba(49, 215, 247, .1);
+      color: var(--cyan);
+    }
+
+    .dock-btn:hover {
+      color: var(--hi);
+    }
+  </style>
 </head>
 
 <body>
+  <div class="app">
 
-    <div class="app">
-
-        <div class="topbar">
-            <div class="brand">
-                <div class="mark">A</div>
-                <div>
-                    <h1>A R C A N E</h1>
-                    <p>LOCAL VOICE CONSOLE</p>
-                </div>
-                <div class="user-chip">
-                    <div class="avatar">SA</div>
-                    <span>SayedA</span>
-                </div>
-            </div>
-            <div class="top-right">
-                <div class="icon-btn" title="Notifications">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-                        <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-                        <path d="M13.7 21a2 2 0 0 1-3.4 0" />
-                    </svg>
-                </div>
-                <div class="icon-btn" title="Theme">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-                        <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z" />
-                    </svg>
-                </div>
-                <div class="pro-pill">
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
-                        <path d="M12 2l2.4 6.6L21 9l-5 4.6L17.4 21 12 17.3 6.6 21 8 13.6 3 9l6.6-.4z" />
-                    </svg>
-                    LOCAL PRO
-                </div>
-            </div>
+    <!-- ══ HEADER ══════════════════════════════════════════════════════════════ -->
+    <header>
+      <div class="brand">
+        <div class="brand-mark">A</div>
+        <div class="brand-text">
+          <h1>A R C A N E</h1>
+          <p>DOUBLE-CLAP · WORKSPACE ORCHESTRATOR</p>
         </div>
+      </div>
+      <div class="conn-chip" id="conn-chip">
+        <div class="dot"></div>
+        <span id="conn-label">CONNECTING…</span>
+      </div>
+    </header>
 
-        <div class="main">
+    <!-- ══ LEFT ════════════════════════════════════════════════════════════════ -->
+    <div class="col left-col">
+      <div class="col-title">// Workspace Sequence</div>
+      <div class="seq-list" id="seq-list"></div>
 
-            <div class="history-col">
-                <div class="col-title">// RECENT COMMANDS</div>
-                <div class="history-grid" id="history-grid"></div>
-                <div class="scroll-hint">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-                        <path d="M12 5v14M5 12l7 7 7-7" />
-                    </svg>
-                </div>
-            </div>
+      <div class="spec-card">
+        <div class="col-title" style="margin-bottom:10px;">// Trigger Spec</div>
+        <div class="spec-row"><span class="sk">Pattern</span> <span class="sv">Double-Clap</span></div>
+        <div class="spec-row"><span class="sk">Gap window</span> <span class="sv">0.08 – 0.45 s</span></div>
+        <div class="spec-row"><span class="sk">Cooldown</span> <span class="sv">0.50 s</span></div>
+        <div class="spec-row"><span class="sk">Spike ratio</span> <span class="sv">7.0 ×</span></div>
+        <div class="spec-row"><span class="sk">Min RMS</span> <span class="sv">0.012</span></div>
+      </div>
+    </div>
 
-            <div class="core-col">
-                <div class="orb-wrap">
-                    <div class="orb-glow"></div>
-                    <div class="orb-ring"></div>
-                    <div class="orb-core">
-                        <canvas id="wave-canvas" width="220" height="100"></canvas>
-                    </div>
-                </div>
-                <p class="transcript" id="transcript">Awaiting first acoustic handshake transient...</p>
-                <div class="listen-state">
-                    <div class="word" id="state-word">STANDBY</div>
-                    <div class="mic-btn" id="mic-node">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-                            <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                            <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <div class="detail-col">
-                <div class="panel">
-                    <div class="col-title">// PARSED COMMAND</div>
-                    <div class="field">
-                        <div class="k">Intent</div>
-                        <div class="v" id="cmd-title">None</div>
-                    </div>
-                    <div class="field">
-                        <div class="k">Route</div>
-                        <div class="v" id="cmd-category">Standby Matrix Layer</div>
-                    </div>
-                    <div class="field">
-                        <div class="k">Confidence</div>
-                        <div class="result-row">
-                            <span class="v" id="cmd-conf">0.0%</span>
-                        </div>
-                        <div class="link-row">
-                            <a href="#">View log</a>
-                            <a href="#">View routing</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-head">
-                        <div class="col-title">// LAST ACTIONS</div>
-                        <a href="#">View all</a>
-                    </div>
-                    <div id="actions-list"></div>
-                </div>
-
-                <div class="panel sys-panel">
-                    <div class="panel-head">
-                        <div class="col-title">// SYSTEM STATUS</div>
-                        <a href="#">Details</a>
-                    </div>
-                    <div id="sys-list"></div>
-                </div>
-            </div>
+    <!-- ══ CENTER ══════════════════════════════════════════════════════════════ -->
+    <div class="col center-col">
+      <div class="orb-wrap">
+        <div class="orb-glow" id="orb-glow"></div>
+        <div class="orb-ring"></div>
+        <div class="orb-core" id="orb-core">
+          <canvas id="wave-cvs" width="196" height="88"></canvas>
         </div>
+      </div>
+      <div class="state-wrap">
+        <div class="state-word" id="state-word">Standby</div>
+        <div class="state-sub" id="state-sub">Mic armed · awaiting first clap</div>
+      </div>
+      <p class="hint" id="hint">Clap twice within 0.08 – 0.45 s to trigger the workspace sequence.</p>
+    </div>
 
-        <div class="dock">
-            <button class="active" title="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="1.6">
-                    <path d="M3 11.5 12 4l9 7.5" />
-                    <path d="M5 10v10h14V10" />
-                </svg></button>
-            <button title="Listen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-                    <circle cx="11" cy="11" r="7" />
-                    <path d="m21 21-4.3-4.3" />
-                </svg></button>
-            <button title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-                    <circle cx="12" cy="12" r="3" />
-                    <path
-                        d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
-                </svg></button>
-            <button title="Activity log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-                    <path d="M3 3v18h18" />
-                    <path d="M7 15l4-6 3 4 5-8" />
-                </svg></button>
+    <!-- ══ RIGHT ═══════════════════════════════════════════════════════════════ -->
+    <div class="col right-col">
+
+      <div class="panel">
+        <div class="col-title">// Audio Meter</div>
+        <div class="meter">
+          <div class="mhead"><span>RMS Level</span><span id="m-rms">0.0000</span></div>
+          <div class="mbar rms"><i id="b-rms" style="width:0%"></i></div>
         </div>
+        <div class="meter">
+          <div class="mhead"><span>Threshold</span><span id="m-thresh">0.0000</span></div>
+          <div class="mbar thresh"><i id="b-thresh" style="width:0%"></i></div>
+        </div>
+        <div class="meter">
+          <div class="mhead"><span>Noise Floor</span><span id="m-floor">0.0000</span></div>
+          <div class="mbar floor"><i id="b-floor" style="width:0%"></i></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="col-title">// Last Trigger</div>
+        <div class="field">
+          <div class="fk">State</div>
+          <div class="fv" id="trig-state">No trigger yet</div>
+        </div>
+        <div class="field">
+          <div class="fk">First clap</div>
+          <div class="fv" id="trig-t1">—</div>
+        </div>
+        <div class="field">
+          <div class="fk">Confirmed</div>
+          <div class="fv" id="trig-t2">—</div>
+        </div>
+      </div>
 
     </div>
 
-    <script>
-        const ICONS = {
-            weather: '<path d="M17.5 19a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.4-1.8A5 5 0 0 0 7 18h10.5Z"/>',
-            alarm: '<circle cx="12" cy="13" r="7"/><path d="M12 9v4l3 2M9 2l-3 2M15 2l3 2"/>',
-            spotify: '<circle cx="12" cy="12" r="9"/><path d="M7.5 10.2c3-1 6.7-.6 9 .9M8 13.3c2.3-.7 5-.4 7 .8M8.6 16.2c1.8-.5 3.8-.3 5.3.6"/>',
-            whatsapp: '<path d="M3 21l1.4-4.2A8 8 0 1 1 8 19.5Z"/><path d="M8.5 9.5c.3 2 2 3.7 4 4"/>',
-            power: '<path d="M12 2v8"/><path d="M6.3 6.3a8 8 0 1 0 11.4 0"/>',
-            reminder: '<path d="M12 6v6l3 3"/><circle cx="12" cy="13" r="8"/><path d="M9 2h6"/>',
-            facts: '<circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/>',
-            browser: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/>',
-            windDown: '<path d="M12 3a7 7 0 1 0 7 9 7 7 0 0 1-7-9Z"/>',
-            workMode: '<rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+    <!-- ══ DOCK ════════════════════════════════════════════════════════════════ -->
+    <footer>
+      <button class="dock-btn active" title="Console">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M3 11.5 12 4l9 7.5" />
+          <path d="M5 10v10h14V10" />
+        </svg>
+      </button>
+      <button class="dock-btn" title="Mic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+          <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4" />
+        </svg>
+      </button>
+      <button class="dock-btn" title="Config">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
+        </svg>
+      </button>
+      <button class="dock-btn" title="Log">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M3 3v18h18" />
+          <path d="M7 15l4-6 3 4 5-8" />
+        </svg>
+      </button>
+    </footer>
+
+  </div><!-- .app -->
+
+  <script>
+    /* ════════════════════════════════════════════════════════════════
+       SEQUENCE — mirrors execute_arcane_sequence() step order exactly
+       ════════════════════════════════════════════════════════════════ */
+    const STEPS = [
+      { key: 'spotify', name: 'Spotify', detail: 'Attention — Charlie Puth', icon: 'M12 3a9 9 0 1 0 0 18A9 9 0 0 0 12 3Zm0 0v18M7.5 9.2c3-1 6.7-.6 9 .9M8 12.3c2.3-.7 5-.4 7 .8M8.6 15.2c1.8-.5 3.8-.3 5.3.6' },
+      { key: 'claude', name: 'Claude', detail: 'Desktop app', icon: 'M12 2l7 3v6c0 5-3.2 8.5-7 11-3.8-2.5-7-6-7-11V5Z' },
+      { key: 'antigravity', name: 'Antigravity IDE', detail: 'Last project restored', icon: 'M12 2L4 7l8 5 8-5-8-5ZM4 12l8 5 8-5M4 17l8 5 8-5' },
+      { key: 'whatsapp', name: 'WhatsApp Web', detail: 'web.whatsapp.com', icon: 'M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347Z M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2Z' },
+      { key: 'vocal', name: 'ElevenLabs TTS', detail: 'Cached greeting', icon: 'M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3ZM19 10v1a7 7 0 0 1-14 0v-1M12 18v4' },
+    ];
+
+    const seqList = document.getElementById('seq-list');
+    seqList.innerHTML = STEPS.map((s, i) => `
+  <div class="seq-row" id="row-${s.key}">
+    <span class="seq-num">0${i + 1}</span>
+    <div class="seq-ic">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="${s.icon}"/>
+      </svg>
+    </div>
+    <div class="seq-body">
+      <div class="seq-name">${s.name}</div>
+      <div class="seq-detail" id="det-${s.key}">${s.detail}</div>
+    </div>
+    <div class="seq-badge" id="badge-${s.key}">Standby</div>
+  </div>
+`).join('');
+
+    function setStage(name, status, detail) {
+      const row = document.getElementById('row-' + name);
+      const badge = document.getElementById('badge-' + name);
+      const det = document.getElementById('det-' + name);
+      if (!row) return;
+      row.classList.remove('active', 'done', 'error');
+      if (status === 'active') { row.classList.add('active'); badge.textContent = 'Active'; }
+      else if (status === 'done') { row.classList.add('done'); badge.textContent = 'Done'; }
+      else if (status === 'error') { row.classList.add('error'); badge.textContent = 'Error'; }
+      else { badge.textContent = 'Standby'; }
+      if (detail) det.textContent = detail;
+    }
+    function resetAll() { STEPS.forEach(s => setStage(s.key, 'standby')); }
+
+    /* ════ ORB WAVE ════════════════════════════════════════════════ */
+    const cvs = document.getElementById('wave-cvs');
+    const ctx = cvs.getContext('2d');
+    let t = 0, amp = 4;
+
+    (function loop() {
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      const mid = cvs.height / 2;
+      [
+        { c: 'rgba(49,215,247,.9)', o: 0, a: amp },
+        { c: 'rgba(139,108,245,.7)', o: 1.3, a: amp * .65 },
+      ].forEach(w => {
+        ctx.beginPath();
+        for (let x = 0; x <= cvs.width; x++) {
+          const y = mid + Math.sin(x * .046 + t + w.o) * w.a * Math.sin(x * .013 + t * .5);
+          x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = w.c; ctx.lineWidth = 2; ctx.stroke();
+      });
+      t += .06;
+      requestAnimationFrame(loop);
+    })();
+
+    /* ════ STATE HELPERS ═══════════════════════════════════════════ */
+    const stateWord = document.getElementById('state-word');
+    const stateSub = document.getElementById('state-sub');
+    const hint = document.getElementById('hint');
+    const orbGlow = document.getElementById('orb-glow');
+    const orbCore = document.getElementById('orb-core');
+
+    function setState(word, sub, hintText, color, glowColor, boxGlow) {
+      stateWord.textContent = word;
+      stateWord.style.color = color;
+      stateSub.textContent = sub;
+      hint.textContent = hintText;
+      orbGlow.style.background = `radial-gradient(circle, ${glowColor}, transparent 68%)`;
+      orbCore.style.boxShadow = boxGlow;
+    }
+    const STATES = {
+      standby: () => setState(
+        'Standby', 'Mic armed · awaiting first clap',
+        'Clap twice within 0.08 – 0.45 s to trigger the workspace sequence.',
+        'var(--hi)', 'rgba(49,215,247,.13)', 'inset 0 0 55px rgba(49,215,247,.10), 0 0 65px rgba(139,108,245,.12)'
+      ),
+      armed: () => {
+        amp = 9; setState(
+          'Armed', 'Stage 01 · first clap detected',
+          'Confirm with a second clap within 0.45 s.',
+          'var(--amber)', 'rgba(255,207,122,.18)', 'inset 0 0 55px rgba(255,207,122,.13), 0 0 65px rgba(255,207,122,.18)'
+        );
+      },
+      confirmed: () => {
+        amp = 16; setState(
+          'Confirmed', 'Stage 02 · double-clap verified',
+          'Workspace sequence running…',
+          'var(--green)', 'rgba(61,255,176,.18)', 'inset 0 0 55px rgba(61,255,176,.13), 0 0 65px rgba(61,255,176,.20)'
+        );
+      },
+      done: () => {
+        amp = 4; setState(
+          'Ready', 'Sequence complete · mic re-armed',
+          'All workspace nodes are live. Clap again anytime to re-trigger.',
+          'var(--hi)', 'rgba(49,215,247,.13)', 'inset 0 0 55px rgba(49,215,247,.10), 0 0 65px rgba(139,108,245,.12)'
+        );
+      }
+    };
+    STATES.standby();
+
+    /* ════ METER ═══════════════════════════════════════════════════ */
+    function onLevel(rms, floor, thresh) {
+      const scale = Math.max(thresh * 3, 0.05);
+      document.getElementById('m-rms').textContent = rms.toFixed(4);
+      document.getElementById('m-thresh').textContent = thresh.toFixed(4);
+      document.getElementById('m-floor').textContent = floor.toFixed(4);
+      document.getElementById('b-rms').style.width = Math.min(100, (rms / scale) * 100) + '%';
+      document.getElementById('b-thresh').style.width = Math.min(100, (thresh / scale) * 100) + '%';
+      document.getElementById('b-floor').style.width = Math.min(100, (floor / scale) * 100) + '%';
+    }
+
+    /* ════ CONNECTION ══════════════════════════════════════════════ */
+    const chip = document.getElementById('conn-chip');
+    const label = document.getElementById('conn-label');
+    function setConn(live) {
+      chip.classList.toggle('live', live);
+      label.textContent = live ? 'BRIDGE LIVE · ws:8765' : 'DEMO MODE';
+    }
+
+    let socket, demoRunning = false, demoIntervals = [];
+    let retryCount = 0, retryTimer = null, connecting = false;
+    const MAX_RETRIES = 5, BASE_DELAY = 1500;
+
+    function connect() {
+      if (connecting) return;           // guard against overlapping calls
+      connecting = true;
+      clearTimeout(retryTimer);         // cancel any pending retry
+
+      try {
+        socket = new WebSocket('ws://127.0.0.1:8765');
+
+        socket.onopen = () => {
+          connecting = false;
+          retryCount = 0;               // reset backoff on success
+          setConn(true);
+          if (demoRunning) {
+            demoRunning = false;
+            demoIntervals.forEach(clearInterval);
+            demoIntervals = [];
+            resetAll();
+            STATES.standby();
+            document.getElementById('trig-state').textContent = 'No trigger yet';
+            document.getElementById('trig-t1').textContent = '—';
+            document.getElementById('trig-t2').textContent = '—';
+          }
         };
 
-        const history = [
-            { label: 'Workspace', icon: 'workMode', pct: 0 },
-            { label: 'Brave Browser', icon: 'browser', pct: 0 },
-            { label: 'Spotify', icon: 'spotify', pct: 0 },
-            { label: 'Vocal Synth', icon: 'facts', pct: 0 },
-        ];
+        socket.onclose = () => {
+          connecting = false;
+          setConn(false);
+          maybeDemo();
+          scheduleRetry();
+        };
 
-        function renderHistory() {
-            document.getElementById('history-grid').innerHTML = history.map(h => `
-    <div class="h-card">
-      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${ICONS[h.icon]}</svg></div>
-      <div class="label">${h.label}</div>
-      <div class="pct">${h.pct}%</div>
-      <div class="bar"><i style="width:${h.pct}%"></i></div>
-    </div>
-  `).join('');
-        }
-        renderHistory();
+        socket.onerror = () => {
+          // onerror always fires before onclose; just clean the ref
+          // onclose will handle retry scheduling
+          socket.onclose = () => {
+            connecting = false;
+            setConn(false);
+            maybeDemo();
+            scheduleRetry();
+          };
+        };
 
-        const actions = [
-            { icon: 'power', t: 'System Core Initialized', s: 'Arcane Framework · Online' },
-        ];
+        socket.onmessage = ({ data }) => {
+          let d; try { d = JSON.parse(data); } catch { return; }
 
-        function renderActions() {
-            document.getElementById('actions-list').innerHTML = actions.map(a => `
-    <div class="action-row">
-      <div class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${ICONS[a.icon]}</svg></div>
-      <div class="meta"><div class="t">${a.t}</div><div class="s">${a.s}</div></div>
-      <div class="go"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3l8 9-8 9V3z"/></svg></div>
-    </div>
-  `).join('');
-        }
-        renderActions();
+          if (d.event === 'first_clap') { STATES.armed(); document.getElementById('trig-t1').textContent = ts(); document.getElementById('trig-state').textContent = 'Awaiting 2nd clap…'; }
+          else if (d.event === 'double_clap') { STATES.confirmed(); document.getElementById('trig-t2').textContent = ts(); document.getElementById('trig-state').textContent = 'Running sequence…'; resetAll(); }
+          else if (d.event === 'stage') { setStage(d.name, d.status, d.detail); }
+          else if (d.event === 'sequence_done') { STATES.done(); document.getElementById('trig-state').textContent = 'Complete'; }
+          else if (d.event === 'level') { onLevel(d.rms || 0, d.noise_floor || 0, d.threshold || 0); }
+        };
+      } catch {
+        connecting = false;
+        setConn(false);
+        maybeDemo();
+        scheduleRetry();
+      }
+    }
 
-        const sysStats = [
-            { name: 'CPU Core', val: 14 },
-            { name: 'RAM Space', val: 42 },
-            { name: 'Mic Input', val: 0 },
-        ];
+    function scheduleRetry() {
+      if (retryCount >= MAX_RETRIES) {
+        console.log('[Clap-OS] WebSocket: max retries reached, staying in demo mode.');
+        return;                         // stop retrying — demo mode is active
+      }
+      const delay = BASE_DELAY * Math.pow(2, retryCount);
+      retryCount++;
+      retryTimer = setTimeout(connect, delay);
+    }
 
-        function renderSysStats() {
-            document.getElementById('sys-list').innerHTML = sysStats.map(s => `
-    <div class="sys-row">
-      <span class="name">${s.name}</span>
-      <div class="bar"><i style="width:${s.val}%"></i></div>
-      <span class="val">${s.val}%</span>
-    </div>
-  `).join('');
-        }
-        renderSysStats();
+    connect();
 
-        /* ---------- WAVEFORM ANIMATION MAPPING ---------- */
-        const canvas = document.getElementById('wave-canvas');
-        const ctx = canvas.getContext('2d');
-        let t = 0;
-        let amp = 2;
+    function ts() { return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
 
-        function drawWave() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const mid = canvas.height / 2;
-
-            [{ color: 'rgba(49,215,247,0.85)', off: 0, a: amp },
-            { color: 'rgba(139,108,245,0.65)', off: 1.4, a: amp * 0.7 }].forEach(w => {
-                ctx.beginPath();
-                for (let x = 0; x <= canvas.width; x++) {
-                    const y = mid + Math.sin(x * 0.04 + t + w.off) * w.a * Math.sin(x * 0.01 + t * 0.5);
-                    x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-                }
-                ctx.strokeStyle = w.color;
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            });
-
-            t += 0.05;
-            requestAnimationFrame(drawWave);
-        }
-        drawWave();
-
-        /* ---------- WEBSOCKET CORE ENGINE HANDLES ---------- */
-        const stateWord = document.getElementById('state-word');
-        const transcript = document.getElementById('transcript');
-        const cmdTitle = document.getElementById('cmd-title');
-        const cmdCategory = document.getElementById('cmd-category');
-        const cmdConf = document.getElementById('cmd-conf');
-        const micNode = document.getElementById('mic-node');
-
-        function setListening() {
-            amp = 18;
-            stateWord.textContent = 'LISTENING';
-            stateWord.style.color = 'var(--cyan)';
-            micNode.style.color = 'var(--cyan)';
-            micNode.style.background = 'rgba(49,215,247,0.15)';
-            transcript.textContent = '"Awaiting second transient audio wave confirmation..."';
-            sysStats[2].val = 85;
-            renderSysStats();
-        }
-
-        function setThinking(text) {
-            amp = 30;
-            stateWord.textContent = 'THINKING';
-            stateWord.style.color = 'var(--violet)';
-            micNode.style.color = 'var(--violet)';
-            micNode.style.background = 'rgba(139,108,245,0.15)';
-            if (text) transcript.textContent = '"' + text + '"';
-
-            // Animate processing metrics up
-            history[0].pct = 45; history[1].pct = 35;
-            renderHistory();
-        }
-
-        function setReady(intent, route, conf) {
-            amp = 4;
-            stateWord.textContent = 'READY';
-            stateWord.style.color = 'var(--green)';
-            micNode.style.color = 'var(--green)';
-            micNode.style.background = 'rgba(61,255,176,0.15)';
-
-            if (intent) cmdTitle.textContent = intent;
-            if (route) cmdCategory.textContent = route;
-            if (conf) cmdConf.textContent = conf + '%';
-
-            // Max out display allocations
-            history.forEach(h => h.pct = 100);
-            renderHistory();
-
-            // Inject current workspace metrics into action block array
-            actions.unshift(
-                { icon: 'workMode', t: 'VS Code Workspace Loaded', s: 'IDE · Active' },
-                { icon: 'browser', t: 'Brave Profile Targets Synchronized', s: 'Browser · Connected' },
-                { icon: 'spotify', t: 'Attention played natively', s: 'Media · Streaming' }
-            );
-            renderActions();
-
-            sysStats[2].val = 10;
-            renderSysStats();
-        }
-
-        // Establish network connections
-        let socket;
-        try {
-            socket = new WebSocket('ws://localhost:8765');
-            socket.onmessage = (event) => {
-                let data;
-                try { data = JSON.parse(event.data); } catch (e) { return; }
-
-                if (data.state === 'listening') setListening();
-                else if (data.state === 'thinking') setThinking(data.transcript);
-                else if (data.state === 'ready') setReady(data.intent, data.route, data.confidence);
-            };
-        } catch (e) {
-            console.log("Socket connection failure. System dropped to standby mapping.");
-        }
-    </script>
-
+    /* ════ DEMO LOOP (runs when backend is offline) ════════════════ */
+    function maybeDemo() { if (!demoRunning) { demoRunning = true; runDemo(); } }
+    function runDemo() {
+      // fake level noise
+      const levelId = setInterval(() => { const r = .008 + Math.random() * .018; onLevel(r, .007, .019); }, 140);
+      demoIntervals.push(levelId);
+      // playback script
+      const script = [
+        () => { STATES.armed(); document.getElementById('trig-t1').textContent = ts(); document.getElementById('trig-state').textContent = 'Awaiting 2nd clap…'; },
+        () => { STATES.confirmed(); document.getElementById('trig-t2').textContent = ts(); document.getElementById('trig-state').textContent = 'Running sequence…'; resetAll(); },
+        () => setStage('spotify', 'active'),
+        () => setStage('spotify', 'done', 'Attention — Charlie Puth'),
+        () => setStage('claude', 'active'),
+        () => setStage('claude', 'done', 'Desktop app'),
+        () => setStage('antigravity', 'active'),
+        () => setStage('antigravity', 'done', 'Last project restored'),
+        () => setStage('whatsapp', 'active'),
+        () => setStage('whatsapp', 'done', 'web.whatsapp.com'),
+        () => setStage('vocal', 'active'),
+        () => setStage('vocal', 'done', 'greeting played'),
+        () => { STATES.done(); document.getElementById('trig-state').textContent = 'Complete'; },
+        () => { }, () => { }, () => { },  // pause frames
+      ];
+      let i = 0;
+      const scriptId = setInterval(() => { script[i % script.length](); i++; }, 1300);
+      demoIntervals.push(scriptId);
+    }
+    setTimeout(() => { if (!socket || socket.readyState !== 1) maybeDemo(); }, 2200);
+  </script>
 </body>
 
 </html>
