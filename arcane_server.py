@@ -38,19 +38,15 @@ MIN_RMS = 0.012
 
 # --- Custom Target Allocations ---
 WORKSPACE_TRACK_URI = "https://open.spotify.com/track/4iLqG9SeJSnt0cSPICSjxv"
-LAUNCH_CLAUDE_WORKSPACE = True
-LAUNCH_BINANCE_WORKSPACE = True
 BRAVE_FORCE_FULLSCREEN = True
 
-CLAUDE_DISPLAY_MONITOR = 1
-BINANCE_DISPLAY_MONITOR = 3
+WHATSAPP_DISPLAY_MONITOR = 1  # Monitor for WhatsApp Web
 
 ARCANE_VOCAL_GREETING_ENABLED = True
 ARCANE_VOCAL_PHRASE = (
-    "Welcome back sir. Workspace initialization complete. "
-    "Congratulations on the new client for your SaaS app—make sure to follow up. "
-    "If it helps: a short, specific note while the deal is still fresh usually "
-    "anchors trust better than a polished deck sent cold a few days later."
+    "Welcome back sir. Your workspace is online and all systems are ready. "
+    "Claude is standing by, your IDE is loaded, and I'm here whenever you need me. "
+    "Just say the word and let's get to work."
 )
 
 # Global State Vectors (State Machine Protection)
@@ -97,7 +93,7 @@ class Win32WindowManager:
 
 class ArcaneVocalizer:
     @classmethod
-    def synthesize_and_play(cls) -> None:
+    def synthesize_and_play(cls, loop) -> None:
         if not ARCANE_VOCAL_GREETING_ENABLED or not ARCANE_VOCAL_PHRASE.strip():
             return
         phrase = ARCANE_VOCAL_PHRASE.strip()
@@ -109,6 +105,7 @@ class ArcaneVocalizer:
 
         if not voice_id:
             print("[Vocalizer] Warning: ELEVENLABS_VOICE_ID missing.", flush=True)
+            send_stage(loop, "vocal", "error", "missing voice ID")
             return
 
         cache_dir = BASE_DIR / ".cache" / "arcane_vocal"
@@ -123,6 +120,7 @@ class ArcaneVocalizer:
                 arr = np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768.0
                 sd.play(arr, rate)
                 sd.wait()
+                send_stage(loop, "vocal", "done", "played from cache")
                 return
             except Exception as e:
                 print(f"[Vocalizer] Cache read fail: {e}", flush=True)
@@ -130,6 +128,7 @@ class ArcaneVocalizer:
         api_key = (os.environ.get("ELEVENLABS_API_KEY") or "").strip()
         if not api_key:
             print("[Vocalizer] Warning: ELEVENLABS_API_KEY missing.", flush=True)
+            send_stage(loop, "vocal", "error", "missing API key")
             return
 
         try:
@@ -151,8 +150,10 @@ class ArcaneVocalizer:
             arr = np.frombuffer(raw_data, dtype=np.int16).astype(np.float32) / 32768.0
             sd.play(arr, 24000)
             sd.wait()
+            send_stage(loop, "vocal", "done", "greeting delivered")
         except Exception as e:
             print(f"[Vocalizer] ElevenLabs live fetch failed: {e}", flush=True)
+            send_stage(loop, "vocal", "error", str(e)[:72])
 
 
 def spawn_brave_instance(url: str, monitor: int, label: str) -> None:
@@ -209,24 +210,23 @@ def spawn_brave_instance(url: str, monitor: int, label: str) -> None:
         print(f"[Automation] Failed to spin up Brave instance: {e}", flush=True)
 
 
-def focus_or_launch_vscode() -> None:
-    program_files = os.environ.get("ProgramFiles", "")
+def focus_or_launch_antigravity() -> None:
+    """Launch or focus Antigravity IDE."""
     local_app = os.environ.get("LOCALAPPDATA", "")
     exe_target = None
     if sys.platform == "win32":
         paths = [
-            os.path.join(local_app, "Programs", "Microsoft VS Code", "Code.exe"),
-            os.path.join(program_files, "Microsoft VS Code", "Code.exe"),
+            os.path.join(local_app, "Programs", "Antigravity IDE", "Antigravity IDE.exe"),
         ]
         for p in paths:
             if os.path.isfile(p):
                 exe_target = p
                 break
     else:
-        exe_target = shutil.which("code")
+        exe_target = shutil.which("antigravity-ide") or shutil.which("code")
 
     if not exe_target:
-        print("[Automation] Warning: Code.exe not found on localized disk.", flush=True)
+        print("[Automation] Warning: Antigravity IDE not found on disk.", flush=True)
         return
     kw = {
         "stdin": subprocess.DEVNULL,
@@ -237,17 +237,44 @@ def focus_or_launch_vscode() -> None:
         kw["creationflags"] = subprocess.CREATE_NO_WINDOW
     try:
         subprocess.Popen([exe_target], **kw)
-        print("[Automation] VS Code core environment initialized.", flush=True)
+        print("[Automation] Antigravity IDE environment initialized.", flush=True)
     except Exception as e:
-        print(f"[Automation] Code environment launch failed: {e}", flush=True)
+        print(f"[Automation] Antigravity IDE launch failed: {e}", flush=True)
 
 
-def execute_workspace_deployment():
+def launch_claude_app() -> None:
+    """Launch the Claude desktop app."""
+    local_app = os.environ.get("LOCALAPPDATA", "")
+    exe_target = None
+    if sys.platform == "win32":
+        candidate = os.path.join(local_app, "AnthropicClaude", "claude.exe")
+        if os.path.isfile(candidate):
+            exe_target = candidate
+
+    if not exe_target:
+        print("[Automation] Warning: Claude desktop app not found.", flush=True)
+        return
+    kw = {
+        "stdin": subprocess.DEVNULL,
+        "stdout": subprocess.DEVNULL,
+        "stderr": subprocess.DEVNULL,
+    }
+    if sys.platform == "win32":
+        kw["creationflags"] = subprocess.CREATE_NO_WINDOW
+    try:
+        subprocess.Popen([exe_target], **kw)
+        print("[Automation] Claude desktop app launched.", flush=True)
+    except Exception as e:
+        print(f"[Automation] Claude app launch failed: {e}", flush=True)
+
+
+def execute_workspace_deployment(loop):
     """Unrolls the deployment sequence exactly once with isolated handlers."""
     print("[Orchestrator] Executing target pipeline sequence...", flush=True)
 
     # 1. Spotify Protocol
     if WORKSPACE_TRACK_URI.strip():
+        send_stage(loop, "spotify", "active")
         try:
             if sys.platform == "win32":
                 os.startfile(WORKSPACE_TRACK_URI.strip())
@@ -257,25 +284,53 @@ def execute_workspace_deployment():
                 "[Automation] Media route injected -> Playing Attention by Charlie Puth",
                 flush=True,
             )
+            send_stage(loop, "spotify", "done", "Attention — Charlie Puth")
         except Exception as e:
             print(f"[Automation] Spotify launch error: {e}", flush=True)
+            send_stage(loop, "spotify", "error", str(e))
 
-    # 2. Brave Mapping Matrices
-    if LAUNCH_CLAUDE_WORKSPACE:
-        url = os.environ.get("CLAUDE_CODE_URL", "https://claude.ai/new")
-        spawn_brave_instance(url, CLAUDE_DISPLAY_MONITOR, "Claude Workspace")
+    # 2. Claude Desktop App
+    send_stage(loop, "claude", "active")
+    try:
+        launch_claude_app()
+        send_stage(loop, "claude", "done", "Desktop app")
+    except Exception as e:
+        print(f"[Automation] Claude launch error: {e}", flush=True)
+        send_stage(loop, "claude", "error", str(e))
 
-    if LAUNCH_BINANCE_WORKSPACE:
-        url = os.environ.get(
-            "BINANCE_BTC_URL", "https://www.binance.com/en/trade/BTC_USDT"
-        )
-        spawn_brave_instance(url, BINANCE_DISPLAY_MONITOR, "Binance Analytics")
+    # 3. Antigravity IDE (reopens last session automatically)
+    send_stage(loop, "antigravity", "active")
+    try:
+        focus_or_launch_antigravity()
+        send_stage(loop, "antigravity", "done", "Last project restored")
+    except Exception as e:
+        print(f"[Automation] Antigravity IDE launch error: {e}", flush=True)
+        send_stage(loop, "antigravity", "error", str(e))
 
-    # 3. Core Workspace Sync
-    focus_or_launch_vscode()
+    # 4. WhatsApp Web
+    send_stage(loop, "whatsapp", "active")
+    try:
+        spawn_brave_instance("https://web.whatsapp.com", WHATSAPP_DISPLAY_MONITOR, "WhatsApp Web")
+        send_stage(loop, "whatsapp", "done", f"Monitor {WHATSAPP_DISPLAY_MONITOR}")
+    except Exception as e:
+        print(f"[Automation] WhatsApp Web launch error: {e}", flush=True)
+        send_stage(loop, "whatsapp", "error", str(e))
 
-    # 4. Background Vocal Synthesis Thread
-    threading.Thread(target=ArcaneVocalizer.synthesize_and_play, daemon=True).start()
+    # 5. Background Vocal Synthesis Thread
+    if ARCANE_VOCAL_GREETING_ENABLED:
+        send_stage(loop, "vocal", "active")
+        threading.Thread(target=ArcaneVocalizer.synthesize_and_play, args=(loop,), daemon=True).start()
+
+    # Finish sequence
+    try:
+        asyncio.run_coroutine_threadsafe(broadcast({"event": "sequence_done"}), loop)
+    except RuntimeError:
+        pass
+
+    # Keep CURRENT_STAGE at 2 — sequence runs once per server session.
+    # Clap detection is inherently blocked because it requires stages 0/1.
+    # Restart the server to allow re-triggering.
+    print("[Engine] Workspace deployed. Clap detection locked. Restart server to re-arm.", flush=True)
 
 
 async def register(websocket):
@@ -287,22 +342,33 @@ async def register(websocket):
     try:
         await websocket.wait_closed()
     finally:
-        CONNECTED_CLIENTS.remove(websocket)
+        CONNECTED_CLIENTS.discard(websocket)
 
 
 async def broadcast(message_dict):
     if CONNECTED_CLIENTS:
         payload = json.dumps(message_dict)
         await asyncio.gather(
-            *[client.send(payload) for client in CONNECTED_CLIENTS],
+            *[client.send(payload) for client in list(CONNECTED_CLIENTS)],
             return_exceptions=True,
         )
+
+
+def send_stage(loop, name, status, detail=""):
+    try:
+        asyncio.run_coroutine_threadsafe(
+            broadcast({"event": "stage", "name": name, "status": status, "detail": detail}),
+            loop
+        )
+    except RuntimeError:
+        pass  # Event loop closed during shutdown
 
 
 def audio_stream_loop(loop):
     global CURRENT_STAGE
     noise_floor = 1e-4
     last_logged_double = 0.0
+    last_level_tx = 0.0
     first_clap_time = None
     spike_armed = True
 
@@ -330,9 +396,29 @@ def audio_stream_loop(loop):
             threshold = max(noise_floor * SPIKE_RATIO, MIN_RMS)
             now = time.monotonic()
 
+            # Real-time Level Broadcast (throttled to 0.10s / 100ms)
+            if (now - last_level_tx) >= 0.10:
+                last_level_tx = now
+                coro = broadcast({
+                    "event": "level",
+                    "rms": round(level, 5),
+                    "noise_floor": round(noise_floor, 5),
+                    "threshold": round(threshold, 5)
+                })
+                try:
+                    asyncio.run_coroutine_threadsafe(coro, loop)
+                except RuntimeError:
+                    coro.close()  # prevent 'was never awaited' warning
+                    return        # event loop closed, exit thread
+
             # SYSTEM UPGRADE: Prevent triggers until the calibration gate closes
             if now < calibration_deadline:
                 continue  # Skip processing triggers during the first 2 seconds
+
+            # Once sequence has deployed (stage 2), skip all clap detection
+            with STATE_LOCK:
+                if CURRENT_STAGE == 2:
+                    continue
 
             if level < (threshold * 0.55):
                 spike_armed = True
@@ -354,7 +440,7 @@ def audio_stream_loop(loop):
                                 flush=True,
                             )
                             asyncio.run_coroutine_threadsafe(
-                                broadcast({"event": "CLAP_1"}), loop
+                                broadcast({"event": "first_clap"}), loop
                             )
                     else:
                         gap = now - first_clap_time
@@ -366,9 +452,13 @@ def audio_stream_loop(loop):
                                     flush=True,
                                 )
                                 asyncio.run_coroutine_threadsafe(
-                                    broadcast({"event": "CLAP_2"}), loop
+                                    broadcast({"event": "double_clap"}), loop
                                 )
-                                execute_workspace_deployment()
+                                threading.Thread(
+                                    target=execute_workspace_deployment,
+                                    args=(loop,),
+                                    daemon=True,
+                                ).start()
                             first_clap_time = None
                             last_logged_double = now
                         else:
@@ -380,7 +470,7 @@ def audio_stream_loop(loop):
                                     flush=True,
                                 )
                                 asyncio.run_coroutine_threadsafe(
-                                    broadcast({"event": "CLAP_1"}), loop
+                                    broadcast({"event": "first_clap"}), loop
                                 )
 
 
@@ -390,14 +480,15 @@ async def main():
     loop = asyncio.get_running_loop()
     threading.Thread(target=audio_stream_loop, args=(loop,), daemon=True).start()
 
-    print("Arcane Web Server running on ws://localhost:8765")
+    print("Arcane Web Server running on ws://127.0.0.1:8765")
 
     # Automatically spawn layout template sheet directly into local space mapping
-    ui_file = BASE_DIR / "index.html"
-    if ui_file.is_file():
-        webbrowser.open(f"file:///{ui_file}")
+    if "--headless" not in sys.argv:
+        ui_file = BASE_DIR / "index.html"
+        if ui_file.is_file():
+            webbrowser.open(f"file:///{ui_file}")
 
-    async with websockets.serve(register, "localhost", 8765):
+    async with websockets.serve(register, "127.0.0.1", 8765):
         await asyncio.Future()
 
 
