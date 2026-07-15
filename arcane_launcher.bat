@@ -3,4 +3,4 @@
 :: Called by Windows Task Scheduler at login
 cd /d "%~dp0"
 call .\.venv\Scripts\activate.bat
-start /B /HIGH python arcane_server.py --headless
+start "" /MIN /HIGH .\.venv\Scripts\pythonw.exe arcane_server.py --headless
