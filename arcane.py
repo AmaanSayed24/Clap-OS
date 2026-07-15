@@ -7,6 +7,11 @@ a customized dark-mode development workspace environment.
 
 Run with --calibrate first to auto-tune thresholds to your clap:
     python arcane.py --calibrate
+
+v3.0 Upgrades:
+  - Per-Monitor v2 DPI Awareness for accurate multi-monitor coordinates
+  - WASAPI low-latency audio device preference (Windows)
+  - Chromium process optimization flags for Brave browser instances
 """
 
 from __future__ import annotations
@@ -84,12 +89,117 @@ HUD_LEVEL_INTERVAL_S = 0.10
 # --- Init --------------------------------------------------------------------
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
+# Win32 DPI Awareness — MUST run before any ctypes.windll.user32 calls
+if sys.platform == "win32":
+    import ctypes
+    try:
+        ctypes.windll.user32.SetProcessDpiAwarenessContext(ctypes.c_void_p(-4))
+    except AttributeError:
+        try:
+            ctypes.windll.shcore.SetProcessDpiAwareness(2)
+        except Exception:
+            pass
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [\033[1;35mArcane\033[0m] %(levelname)s: %(message)s",
     datefmt="%H:%M:%S",
 )
 log = logging.getLogger("arcane")
+
+
+# =============================================================================
+#  Voice Calibration
+# =============================================================================
+
+def run_voice_calibration() -> None:
+    """
+    Interactive CLI utility to test and calibrate voice verification locally.
+    """
+    print("\n\033[1;36m[Voice Calibration]\033[0m Initializing local Whisper engine...")
+    try:
+        from faster_whisper import WhisperModel
+        model = WhisperModel("tiny.en", device="cpu", compute_type="int8")
+        print("  Whisper tiny.en model loaded successfully.")
+    except Exception as e:
+        print(f"  \033[1;31m[ERROR]\033[0m Failed to load Whisper engine: {e}")
+        return
+
+    # Discover mic device
+    input_device_idx = find_optimal_input_device()
+    try:
+        dev_info = sd.query_devices(input_device_idx)
+        print(f"  Active Mic: {dev_info['name']}")
+        native_rate = int(dev_info["default_samplerate"])
+    except Exception:
+        print("  Active Mic: System Default")
+        native_rate = 16000
+
+    duration_s = 3.5
+    block_samples = int(native_rate * duration_s)
+
+    print("\n\033[1;32m[Ready]\033[0m Speak the passphrase: '\033[1;37mHey Arcane\033[0m' into your mic now...")
+    print("        Recording for 3.5 seconds...")
+
+    # Count down
+    for i in range(3, 0, -1):
+        print(f"  Starting in {i}...", end="\r", flush=True)
+        time.sleep(1)
+    print("  \033[1;31m[RECORDING NOW]\033[0m Speak!")
+
+    try:
+        audio = sd.rec(block_samples, samplerate=native_rate, channels=1, dtype="float32", device=input_device_idx)
+        sd.wait()
+        audio = audio.flatten()
+        print("  Recording complete.")
+        
+        # Audio level diagnostic statistics
+        peak_val = float(np.max(np.abs(audio)))
+        rms_val = float(np.sqrt(np.mean(audio**2)))
+        print(f"  Signal Diagnostics -> Peak Amplitude: {peak_val:.5f} | RMS Level: {rms_val:.5f}")
+        
+        if peak_val < 0.005:
+            print("  \033[1;31m[WARNING]\033[0m Microphone signal is extremely quiet! Please check:")
+            print("    - Is the microphone muted in Windows Sound settings?")
+            print("    - Is the recording volume set too low?")
+            print("    - Is the correct physical input device selected?")
+            
+        print("  Processing transcription...")
+        
+        # Downsample to 16000 Hz if needed
+        if native_rate != 16000:
+            duration = len(audio) / native_rate
+            target_samples = int(duration * 16000)
+            orig_indices = np.linspace(0, duration, len(audio))
+            target_indices = np.linspace(0, duration, target_samples)
+            audio = np.interp(target_indices, orig_indices, audio).astype(np.float32)
+    except Exception as e:
+        print(f"  \033[1;31m[ERROR]\033[0m Recording failed: {e}")
+        return
+
+    print("  Transcribing...")
+    try:
+        segments, info = model.transcribe(audio, beam_size=5, initial_prompt="arcane, Hey Arcane")
+        text = " ".join([seg.text for seg in segments]).strip()
+        print(f"\n  Detected Language: {info.language} (Probability: {info.language_probability:.2f})")
+        print(f"  Resulting Text   : '\033[1;37m{text}\033[0m'")
+        
+        passphrase_matches = [
+            "arcane", "our cane", "our-cane", "hey arcane",
+            "hay arcane", "hey arca", "hey arc", "arcade"
+        ]
+        
+        matched = any(phrase in text.lower() for phrase in passphrase_matches)
+        if matched:
+            print("\n  \033[1;32m[SUCCESS]\033[0m Voice passphrase recognized! This will unlock your workspace successfully.")
+        else:
+            print("\n  \033[1;33m[WARNING]\033[0m Passphrase NOT recognized.")
+            print("  Suggestions:")
+            print("    1. Speak clearly and a bit closer to the microphone.")
+            print("    2. If your accent causes Whisper to consistently transcribe a specific word, let me know and we can add that to the allowed passphrase matches.")
+    except Exception as e:
+        print(f"  \033[1;31m[ERROR]\033[0m Transcription failed: {e}")
+    print()
 
 
 # =============================================================================
@@ -123,6 +233,7 @@ def run_calibration() -> None:
         channels=CHANNELS,
         dtype="float32",
         blocksize=BLOCK_SAMP,
+        latency="low",  # Request minimum buffer depth from PortAudio
     ) as stream:
         while (time.monotonic() - start) < DURATION:
             elapsed = DURATION - (time.monotonic() - start)
@@ -414,6 +525,11 @@ def spawn_brave_instance(url: str, monitor: int, label: str) -> None:
         p.mkdir(parents=True, exist_ok=True)
         cmd += [f"--user-data-dir={p}", "--no-first-run"]
     cmd.append("--new-window")
+    # Chromium process optimization — reduce background CPU/memory usage
+    cmd += [
+        "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+    ]
     if sys.platform == "win32":
         l, t, r, b = Win32WindowManager.get_monitor_bounds(monitor)
         cmd.append(f"--window-position={l},{t}")
@@ -482,6 +598,97 @@ def execute_arcane_sequence() -> None:
         except Exception:
             log.warning("Binance workspace failed."); HUD.stage("binance", "error")
 
+
+def run_voice_verification(input_device_idx: int) -> bool:
+    log.info("\033[1;33m[Voice Auth]\033[0m Voice verification sequence started. Loading Whisper model...")
+    HUD.send({"event": "voice_auth_status", "status": "loading", "detail": "Initializing voice engine..."})
+
+    try:
+        from faster_whisper import WhisperModel
+        model = WhisperModel("tiny.en", device="cpu", compute_type="int8")
+        log.info("\033[1;32m[Voice Auth]\033[0m Whisper engine loaded.")
+    except Exception as e:
+        log.error("Failed to load WhisperModel: %s", e)
+        HUD.send({"event": "voice_auth_status", "status": "failed", "detail": "Voice engine failed to load"})
+        return False
+
+    HUD.send({"event": "voice_auth_status", "status": "listening", "detail": "Say 'Hey Arcane' to unlock..."})
+    log.info("\033[1;33m[Voice Auth]\033[0m Awaiting passphrase: 'Hey Arcane'...")
+
+    duration_s = 3.5
+    
+    # Determine the native sample rate of the device
+    native_rate = 16000
+    if input_device_idx is not None and input_device_idx >= 0:
+        try:
+            dev_info = sd.query_devices(input_device_idx)
+            native_rate = int(dev_info["default_samplerate"])
+        except Exception:
+            pass
+    else:
+        try:
+            native_rate = int(sd.query_devices(kind='input')["default_samplerate"])
+        except Exception:
+            pass
+
+    block_samples = int(native_rate * duration_s)
+    log.info("\033[1;33m[Voice Auth]\033[0m Recording mic array for %s seconds at native %d Hz...", duration_s, native_rate)
+
+    try:
+        audio = sd.rec(block_samples, samplerate=native_rate, channels=1, dtype="float32", device=input_device_idx)
+        sd.wait()
+        audio = audio.flatten()
+        log.info("\033[1;33m[Voice Auth]\033[0m Processing transcription...")
+        
+        # Resample to 16000 Hz if native rate is different
+        if native_rate != 16000:
+            log.info("\033[1;33m[Voice Auth]\033[0m Downsampling from %d Hz to 16000 Hz...", native_rate)
+            duration = len(audio) / native_rate
+            target_samples = int(duration * 16000)
+            orig_indices = np.linspace(0, duration, len(audio))
+            target_indices = np.linspace(0, duration, target_samples)
+            audio = np.interp(target_indices, orig_indices, audio).astype(np.float32)
+    except Exception as e:
+        log.error("Recording failed: %s", e)
+        HUD.send({"event": "voice_auth_status", "status": "failed", "detail": f"Recording failed: {e}"})
+        return False
+
+    HUD.send({"event": "voice_auth_status", "status": "processing", "detail": "Verifying passphrase..."})
+
+    try:
+        segments, info = model.transcribe(audio, beam_size=5, initial_prompt="arcane, Hey Arcane")
+        text = " ".join([seg.text for seg in segments]).strip().lower()
+        log.info("\033[1;37m[Voice Auth]\033[0m Transcribed: '%s'", text)
+
+        passphrase_matches = [
+            "arcane", "our cane", "our-cane", "hey arcane",
+            "hay arcane", "hey arca", "hey arc", "arcade"
+        ]
+        authenticated = any(phrase in text for phrase in passphrase_matches)
+    except Exception as e:
+        log.error("Whisper failed: %s", e)
+        authenticated = False
+        text = "error"
+
+    if authenticated:
+        log.info("\033[1;32m[Voice Auth]\033[0m Authentication Successful!")
+        HUD.send({"event": "voice_auth_status", "status": "success", "detail": "Access Granted!"})
+        return True
+    else:
+        log.info("\033[1;31m[Voice Auth]\033[0m Access Denied.")
+        HUD.send({"event": "voice_auth_status", "status": "failed", "detail": f"Incorrect phrase: '{text}'" if text else "Silence"})
+        if ARCANE_VOCAL_GREETING_ENABLED:
+            try:
+                global ARCANE_VOCAL_PHRASE
+                orig = ARCANE_VOCAL_PHRASE
+                # Use a custom warning message for access denied
+                ARCANE_VOCAL_PHRASE = "Access denied. Re-arming system."
+                ArcaneVocalizer.synthesize_and_play()
+                ARCANE_VOCAL_PHRASE = orig
+            except Exception:
+                pass
+        return False
+
     if ARCANE_VOCAL_GREETING_ENABLED:
         HUD.stage("vocal", "active")
         delay = max(0.0, ARCANE_VOCAL_DELAY_S)
@@ -506,16 +713,50 @@ def execute_arcane_sequence() -> None:
 # =============================================================================
 
 def find_optimal_input_device() -> int:
+    """Find the best input device. Prefers WASAPI on Windows for lowest latency."""
     override = (os.environ.get("ARCANE_INPUT_DEVICE") or "").strip()
+
+    # Try WASAPI host API first on Windows
+    wasapi_idx = None
+    if sys.platform == "win32":
+        try:
+            hostapis = sd.query_hostapis()
+            wasapi_idx = next(
+                (i for i, api in enumerate(hostapis) if "WASAPI" in api["name"]),
+                None,
+            )
+        except Exception:
+            pass
+
+    # User override takes priority (but prefer WASAPI version of that device)
     if override:
-        if override.isdigit(): return int(override)
+        if override.isdigit():
+            return int(override)
+        for idx, dev in enumerate(sd.query_devices()):
+            if override.lower() in dev["name"].lower() and dev["max_input_channels"] >= 1:
+                # If WASAPI is available, prefer the WASAPI variant of the named device
+                if wasapi_idx is not None and dev["hostapi"] == wasapi_idx:
+                    log.info("\033[1;36m[WASAPI]\033[0m Using override device: %s", dev["name"])
+                    return idx
+        # Fallback: any matching device regardless of host API
         for idx, dev in enumerate(sd.query_devices()):
             if override.lower() in dev["name"].lower() and dev["max_input_channels"] >= 1:
                 return idx
+
+    # Auto-select: prefer WASAPI input device
+    if wasapi_idx is not None:
+        for idx, dev in enumerate(sd.query_devices()):
+            if dev["hostapi"] == wasapi_idx and dev["max_input_channels"] >= 1:
+                log.info("\033[1;36m[WASAPI]\033[0m Auto-selected device: %s", dev["name"])
+                return idx
+
+    # Final fallback: system default
     default = sd.default.device[0]
-    if default is not None and default >= 0: return default
+    if default is not None and default >= 0:
+        return default
     for idx, dev in enumerate(sd.query_devices()):
-        if dev["max_input_channels"] >= 1: return idx
+        if dev["max_input_channels"] >= 1:
+            return idx
     return 0
 
 
@@ -555,6 +796,7 @@ def main(on_detection: callable | None = None) -> int:
             channels=CHANNELS,
             dtype="float32",
             blocksize=block_samples,
+            latency="low",  # Request minimum buffer depth from PortAudio
         ) as stream:
             while True:
                 data, overflow = stream.read(block_samples)
@@ -599,12 +841,25 @@ def main(on_detection: callable | None = None) -> int:
                         if MIN_DOUBLE_GAP_S <= gap <= MAX_DOUBLE_GAP_S:
                             first_clap_time    = None
                             last_logged_double = now
-                            log.info("\033[1;32m[2/2]\033[0m Double-clap confirmed (gap=%.3fs) 🚀", gap)
+                            log.info("\033[1;32m[2/2]\033[0m Double-clap confirmed (gap=%.3fs) -- Awaiting voice auth", gap)
                             HUD.send({"event": "double_clap"})
                             if on_detection: on_detection("double_clap")
-                            if not sequence_executed:
-                                sequence_executed = True
-                                threading.Thread(target=execute_arcane_sequence, daemon=True).start()
+                            
+                            # Exit InputStream to release device, run auth, and optionally restart
+                            stream.close()
+                            
+                            authed = run_voice_verification(input_device_idx)
+                            if authed:
+                                if not sequence_executed:
+                                    sequence_executed = True
+                                    threading.Thread(target=execute_arcane_sequence, daemon=True).start()
+                                    # Safe exit - deployment is unrolling
+                                    return 0
+                            else:
+                                # Start a new stream manually or restart main()
+                                log.info("\033[1;33m[Voice Auth]\033[0m Resetting to standby.")
+                                # Restart stream loop by calling main again
+                                return main(on_detection)
                         else:
                             # gap out of window — treat this spike as a new first clap
                             log.info("\033[1;33m[!]\033[0m Gap %.3fs out of window (%.2f–%.2f) — resetting", gap, MIN_DOUBLE_GAP_S, MAX_DOUBLE_GAP_S)
@@ -626,5 +881,7 @@ def main(on_detection: callable | None = None) -> int:
 if __name__ == "__main__":
     if "--calibrate" in sys.argv:
         run_calibration()
+    elif "--calibrate-voice" in sys.argv:
+        run_voice_calibration()
     else:
         sys.exit(main())
